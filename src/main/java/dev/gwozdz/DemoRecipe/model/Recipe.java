@@ -1,11 +1,15 @@
 package dev.gwozdz.DemoRecipe.model;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import java.util.HashSet;
 import java.util.Set;
-
+@Data
+@EqualsAndHashCode(exclude = {"note", "categories", "ingredients"})
 @Entity
 public class Recipe {
 
@@ -29,13 +33,13 @@ public class Recipe {
 
 
     @OneToOne(cascade = CascadeType.ALL)
-    private Notes notes;
+    private Note note;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "recipe")
     private Set<Ingredient> ingredients = new HashSet<>();
 
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name="recipe_category",
     joinColumns = @JoinColumn(name="recipe_id"), inverseJoinColumns = @JoinColumn(name="category_id"))
     private Set<Category> categories = new HashSet<>();
@@ -112,12 +116,24 @@ public class Recipe {
         this.image = image;
     }
 
-    public Notes getNotes() {
-        return notes;
+    public Note getNote() {
+        return note;
+    }
+    public void addNote(Note note){
+        this.note = note;
+        note.setRecipe(this);
     }
 
-    public void setNotes(Notes notes) {
-        this.notes = notes;
+    public void setNote(Note note) {
+        this.note = note;
+    }
+
+    public Difficulty getDifficulty() {
+        return difficulty;
+    }
+
+    public void setDifficulty(Difficulty difficulty) {
+        this.difficulty = difficulty;
     }
 
     public Set<Ingredient> getIngredients() {
@@ -127,12 +143,16 @@ public class Recipe {
     public void setIngredients(Set<Ingredient> ingredients) {
         this.ingredients = ingredients;
     }
-    public Difficulty getDifficulty() {
-        return difficulty;
-    }
 
-    public void setDifficulty(Difficulty difficulty) {
-        this.difficulty = difficulty;
+    public void addIngredient(Ingredient ingredient){
+        if(ingredients.add(ingredient)){
+            ingredient.setRecipe(this);
+        }
+    }
+    public void addCategory(Category category){
+        if(categories.add(category)){
+            category.addRecipe(this);
+        }
     }
     public Set<Category> getCategories() {
         return categories;
